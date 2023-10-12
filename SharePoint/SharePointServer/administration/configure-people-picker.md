@@ -67,6 +67,24 @@ stsadm.exe -o getproperty -pn <Property Name> -url <Web application URL>
 ```
 
 For more information, see [Peoplepicker: Stsadm properties](/previous-versions/office/sharepoint-2007-products-and-technologies/cc263318(v=office.12)).
+***
+Powerhsell Version:
+```console
+Get-SPPeoplePickerConfig -WebApplication <Web application URL>
+```
+Property mapping inside the above url is below 
+
+| stsadm property                                  | Powershell property                              |
+| ------------------------------------------------ | ------------------------------------------------ |
+| activedirectorysearchtimeout                     | ActiveDirectorySearchTimeout                     |
+| distributionlistsearchdomains                    | DistributionListSearchDomains                    |
+| nowindowsaccountsfornonwindowsauthenticationmode | NoWindowsAccountsForNonWindowsAuthenticationMode |
+| onlysearchwithinsitecollection                   | OnlySearchWithinSiteCollection                   |
+| searchadcustomquery                              | ActiveDirectoryCustomQuery                       |
+| searchadforests                                  | SearchActiveDirectoryDomains                     |
+
+
+
 
 ### Clear a property value from People Picker
 
@@ -79,6 +97,12 @@ stsadm.exe -o setproperty -pn <Property Name> -pv "" -url <Web application URL>
 ```
 
 For more information, see [Peoplepicker-searchadforests: Stsadm property](/previous-versions/office/sharepoint-2007-products-and-technologies/cc263460(v=office.12)).
+***
+
+***Powerhsell Version:***
+For how to set by powershell, you can refer to [set-sppeoplepickerconfig](https://learn.microsoft.com/en-us/powershell/module/sharepoint-server/set-sppeoplepickerconfig?view=sharepoint-server-ps)
+
+
 
 ### Set an encryption key for use with a one-way trust
 
@@ -92,6 +116,13 @@ To set an encryption key, type the following command:
 ```console
 stsadm.exe -o setapppassword -password <key>
 ```
+***
+***Powerhsell version***
+```console
+$key = ConvertTo-SecureString -String "New Password" -AsPlainText -Force
+Set-SPApplicationCredentialKey -Password $key
+```
+[Set-SPApplicationCredentialKey](https://learn.microsoft.com/en-us/powershell/module/sharepoint-server/Set-SPApplicationCredentialKey?view=sharepoint-ps&preserve-view=true)
 
 ### Enable cross-forest or cross-domain queries when using a one-way trust
 
@@ -113,6 +144,19 @@ sTSADM.exe -o setproperty -pn peoplepicker-searchadforests -pv "forest:Contoso.c
 ```
 
 For more information, see [Peoplepicker-searchadforests: Stsadm property](/previous-versions/office/sharepoint-2007-products-and-technologies/cc263460(v=office.12)).
+***
+***Powerhsell version***
+```console
+Add-SPPeoplePickerSearchADDomain -WebApplication <Web application URL> -DomainName <Name of the forest or domain> -Credential (NewObject System.Management.Automation.PSCredential <Domain user name>, (ConvertTo-SecureString <password> -AsPlainText -Force))
+```
+[Add-SPPeoplePickerSearchADDomain](https://learn.microsoft.com/en-us/powershell/module/sharepoint-server/add-sppeoplepickersearchaddomain?view=sharepoint-server-ps)
+
+
+```console
+Add-SPPeoplePickerSearchADDomain -WebApplication http://MyOfficeApp1 -DomainName "corp.contoso.com" -Credential (NewObject System.Management.Automation.PSCredential "contoso\user", (ConvertTo-SecureString "password" -AsPlainText -Force))
+```
+
+
 
 ### Restrict People Picker to a certain group in Active Directory
 
@@ -135,6 +179,11 @@ stsadm -o setsiteuseraccountdirectorypath -path "OU=Sales,DC=ContosoCorp,DC=loca
 
 For more information, see [Setsiteuseraccountdirectorypath: Stsadm operation](/previous-versions/office/sharepoint-2007-products-and-technologies/cc263328(v=office.12)).
 
+***
+***Powerhsell version***
+In [stsadm-to-microsoft-powershell-mapping](https://learn.microsoft.com/en-us/sharepoint/technical-reference/stsadm-to-microsoft-powershell-mapping) We can find setsiteuseraccountdirectorypath is mapped to [Get-SPSiteSubscription New-SPSiteSubscription Remove-SPSiteSubscription] but I think this is not correct
+ActiveDirectoryCustomFilter/~~ActiveDirectoryCustomQuery~~?
+
 ### Define the location of administrator accounts
 
 Administrative user accounts are often located in a different OU from regular site users. If you have used the Stsadm **setsiteuseraccountdirectorypath** operation to force People Picker to only return query resulting from a specific OU, you must also set the Stsadm **peoplepicker-serviceaccountdirectorypaths** property so the administrator can manage the site collection.
@@ -155,6 +204,17 @@ stsadm -o setproperty -pn peoplepicker-serviceaccountdirectorypaths -pv "OU=Farm
 ```
 
 For more information, see [Peoplepicker-serviceaccountdirectorypaths: Stsadm property](/previous-versions/office/sharepoint-2007-products-and-technologies/cc263012(v=office.12))).
+***
+***Powershell version:***
+```console
+Add-SPPeoplePickerServiceAccountDirectoryPath -WebApplication <Web application URL> -OUName <OU name>
+```
+
+```console
+Add-SPPeoplePickerServiceAccountDirectoryPath -WebApplication https://ServerName -OUName "OU=FarmAdmin,DC=Contoso,DC=local"
+```
+
+[Add-SPPeoplePickerServiceAccountDirectoryPath ](https://learn.microsoft.com/en-us/powershell/module/sharepoint-server/add-sppeoplepickerserviceaccountdirectorypath?view=sharepoint-server-ps)
 
 ## Force People Picker to pick only from users in the site collection
 
@@ -178,6 +238,15 @@ stsadm -o setproperty –pn peoplepicker-onlysearchwithinsitecollection –pv ye
 ```
 
 For more information, see [Peoplepicker-onlysearchwithinsitecollection: Stsadm property](/previous-versions/office/sharepoint-2007-products-and-technologies/cc261988(v=office.12)) and [Peoplepicker-peopleeditoronlyresolvewithinsitecollection: Stsadm property](/previous-versions/office/sharepoint-foundation-2010/gg602064(v=office.14)).
+***
+***Powershell cmd version***
+```console
+Set-SPPeoplePickerConfig -WebApplication <Web application URL> -PeopleEditorOnlyResolveWithinSiteCollection
+```
+
+```console
+Set-SPPeoplePickerConfig -WebApplication <Web application URL> -OnlySearchWithinSiteCollection
+```
 
 ### Filter Active Directory accounts by using LDAP queries
 
@@ -213,6 +282,25 @@ stsadm -o setproperty -pn peoplepicker-searchadcustomfilter -pv "((Title=Manager
 > Remember that every time you run the `setproperty` command for a specific property, that property's current values will be overwritten by the new values you specify. If you need to filter query results based on multiple criteria, you will need to build a compound LDAP query that includes all the values for which you want to filter.
 
 For more information, see [Peoplepicker-searchadcustomfilter: Stsadm property](/previous-versions/office/sharepoint-2007-products-and-technologies/cc263452(v=office.12)).
+***
+***Powershell cmd version***
+```console
+Set-SPPeoplePickerConfig -WebApplication <Web application URL> -ActiveDirectoryCustomFilter <LDAP query filter>
+```
+
+```console
+Set-SPPeoplePickerConfig -WebApplication https://ServerName -ActiveDirectoryCustomFilter "(|(&(mail=*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))(objectcategory=group))"
+```
+
+```console
+Set-SPPeoplePickerConfig -WebApplication https://ServerName -ActiveDirectoryCustomFilter "(&(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=2))"
+```
+
+```console
+Set-SPPeoplePickerConfig -WebApplication https://ServerName -ActiveDirectoryCustomFilter "((Title=Manager))" 
+```
+
+
 
 ### Return only non-Active Directory user accounts
 
@@ -225,6 +313,12 @@ stsadm -o setproperty -pn peoplepicker-nowindowsaccountsfornonwindowsauthenticat
 ```
 
 For more information, see [Peoplepicker-nowindowsaccountsfornonwindowsauthenticationmode: Stsadm property](/previous-versions/office/sharepoint-2007-products-and-technologies/cc263264(v=office.12)).
+
+***
+***Powershell cmd version***
+```console
+Set-SPPeoplePickerConfig -WebApplication <Web application URL> -NoWindowsAccountsForNonWindowsAuthenticationMode
+```
 
 ## See Also
 
